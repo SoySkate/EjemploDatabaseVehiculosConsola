@@ -22,8 +22,6 @@ namespace VehiculosTestConetionDB
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-         
         }
 
         //Comandos para inicializar la Migracion una vez se ha creado o modificado las clases y por lo tanto

@@ -28,7 +28,7 @@ namespace VehiculosTestConetionDB.Models
         public double HorsePowerHP { get => horsePowerHP; set => horsePowerHP = value; }
         public double Cilindrada { get=> cilindrada; set => cilindrada = value;}
 
-        public string GetMotor() => "Combustible: " + TipoMotor + " Caballos de potencia: " + HorsePowerHP + "HP" + "Y los cm3 son: " + Cilindrada + "cc";
+        public string GetMotor() => "Combustible: " + TipoMotor.ToString() + " Caballos de potencia: " + HorsePowerHP + "HP" + "Y los cm3 son: " + Cilindrada + "cc";
     }
    
 }

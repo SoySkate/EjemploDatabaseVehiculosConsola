@@ -1,7 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.Net.Http.Headers;
+using System.Numerics;
+using System.Reflection.Metadata.Ecma335;
 using VehiculosTestConetionDB;
 using VehiculosTestConetionDB.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 internal class Program
 {
@@ -32,7 +36,7 @@ internal class Program
             " se ha puesto una valoracion por defecto(7)"); return valoracion = 7;
         }
     }
-    static void crearVehiculo()
+    static void crearVehiculo(VehiculosContexto Contexto1)
     {
         int maxVelo, maxPerso ,valoracion=0,numRuedas=0;
         string modelo, color, VIN, combustible;
@@ -128,8 +132,6 @@ internal class Program
                 motor = V1.Motor = new Motor(VehiculosTestConetionDB.Enums.Combustible.GASOLINA, horsepower, cilindrada);
                 break;
         }
-        VehiculosContexto Contexto1 = new VehiculosContexto();
-
         V1.TopSpeed = maxVelo;
         V1.MaxPersonas = maxPerso;
         V1.NumVIN = VIN;
@@ -208,11 +210,121 @@ internal class Program
         ContextoLista.Dispose();
 
     }
-    static void EditarVechiculo()
+    static void ModificarColorOMotor(VehiculosContexto Contexto1, List<Vehiculo> lista)
+    {
+
+        Type myListElementType = lista.GetType().GetGenericArguments().Single();
+        Type tipoCoche = typeof(Coche);
+        Type tipoAvion = typeof(Avion);
+        Type tipoYate = typeof(Yate);
+        int id;
+        bool correcto = false;
+        List<Vehiculo> queryCoche = new List<Vehiculo>();
+        Console.WriteLine("Introduzca el ID del Vehiculo.(Con la lista de vehiculos puedes obtener el Id del vehiculo");
+        id = int.Parse(Console.ReadLine()); //} catch { Console.WriteLine("Debes introducir un numero entero."); id = 0; }
+        //Si el id no coincide simplemente vuelve a preguntarlo mismo.
+       
+        if (id != 0)
+        {
+            Console.WriteLine("Aqui si??");
+            if (myListElementType == tipoCoche)
+            {
+                var queryId = Contexto1.Coches.Include(y=>y.Motor)
+                    .Where(c => c.ID == id)
+                    .Select(c => c);
+                Console.WriteLine(queryId.Count());
+                Console.WriteLine("Aqui si22222??");
+                if (queryId.Count() > 0)
+                {
+                    correcto = !correcto;
+                   var listaDelVehiculo= queryId.ToList();
+                    queryCoche.Add(listaDelVehiculo[0]);
+                    Console.WriteLine("this is your vehiculoo:"+listaDelVehiculo[0].ToString());
+
+                }
+            }else if(myListElementType == tipoAvion)
+            {
+                Console.WriteLine("Aqui si22222??");
+                var queryId = Contexto1.Aviones.Include(y => y.Motor)
+                    .Where(c => c.ID == id)
+                   .Select(c => c);
+                if (queryId.Count() > 0)
+                {
+                    correcto = !correcto;
+                    var listaDelVehiculo = queryId.ToList();
+                    queryCoche.Add(listaDelVehiculo[0]);
+                    Console.WriteLine("this is your vehiculoo:" + listaDelVehiculo[0].ToString());
+                }
+            }else if(myListElementType == tipoYate)
+            {
+                Console.WriteLine("Aqui si22222??");
+                var queryId = Contexto1.Yates.Include(y => y.Motor)
+                    .Where(c => c.ID == id)
+                   .Select(c => c);
+                if (queryId.Count() > 0)
+                {
+
+                    correcto = !correcto;
+                       var listaDelVehiculo= queryId.ToList();
+                    queryCoche.Add(listaDelVehiculo[0]);
+                    Console.WriteLine("this is your vehiculoo:" + listaDelVehiculo[0].ToString());
+                }
+            }
+        }
+        while (correcto == true)
+        {
+            Console.WriteLine("Puede editar el Color y el Motor del coche. Pulsa 1 para editar Color o Pulse 2 para editar Motor:");
+            string cambio = "";
+
+            do
+            {
+                try { cambio = Console.ReadLine(); } catch { Console.WriteLine("Valor incorrecto porfavor vualva a intentarlo:"); cambio = ""; }
+            } while (cambio != "1" || cambio != "2");
+            if (cambio == "1")
+            {
+
+                var V1 = queryCoche[0];
+                string color;
+                Console.WriteLine("Seleccione el nuevo Color para el Vehiculo:");
+                try { color = Console.ReadLine(); } catch { Console.WriteLine("Color incorrecto;Valor por defecto establecido: (Gris)"); color = "gris"; }
+                switch (color)
+                {
+                    case "negro":
+                        V1.Color = VehiculosTestConetionDB.Enums.Color.NEGRO;
+                        break;
+                    case "blanco":
+                        V1.Color = VehiculosTestConetionDB.Enums.Color.BLANCO;
+                        break;
+                    case "amarillo":
+                        V1.Color = VehiculosTestConetionDB.Enums.Color.AMARILLO;
+                        break;
+                    case "rojo":
+                        V1.Color = VehiculosTestConetionDB.Enums.Color.ROJO;
+                        break;
+                    case "azul":
+                        V1.Color = VehiculosTestConetionDB.Enums.Color.AZUL;
+                        break;
+                    case "gris":
+                        V1.Color = VehiculosTestConetionDB.Enums.Color.GRIS;
+                        break;
+                    case "verde":
+                        V1.Color = VehiculosTestConetionDB.Enums.Color.VERDE;
+                        break;
+                    default:
+                        Console.WriteLine("No has introducido ningun color valido, por lo tanto se ha puesto el color gris por defecto;");
+                        V1.Color = VehiculosTestConetionDB.Enums.Color.GRIS;
+                        break;
+                }
+
+            }
+        }
+        
+       
+    }
+    static void EditarVechiculo(VehiculosContexto Contexto1)
     {
         int option;
         bool menu = true;
-        VehiculosContexto ContextoEditar = new VehiculosContexto();
         do { 
         Console.WriteLine("Que vehiculo quiere editar?");
         Console.WriteLine("Introduzca el numero 1 para editar un Coche.");
@@ -223,32 +335,35 @@ internal class Program
         switch (option)
         {
             case 1:
-                    int id;
-                    bool correcto=true;
-                
-                    Console.WriteLine("Introduzca el ID del Coche.(Con la lista de vehiculos puedes obtener el Id del vehiculo");
-                    try { id = int.Parse(Console.ReadLine()); } catch { Console.WriteLine("Debes introducir un numero entero."); id = 0; }
-                    //Si el id no coincide simplemente vuelve a preguntarlo mismo.
-                    if (id != 0)
-                    {
-                        var queryId = ContextoEditar.Coches.Where(c => c.ID == id)
-                            .Select(c => c);
-                        if(queryId.Count() > 0)
-                        {
-                            Console.WriteLine("Que parte del vehiculo desea editar??");
-                        }
+                    
+                    var coches = Contexto1.Coches;
+                    //hacer casting de coches a vehiculos
 
-                    }
+                    List<Coche> listaVehiculos = new List<Coche>();
+                    //nose la lista coches del contexto no me la trata como una lista de coches normal creo
+                    listaVehiculos = coches as List<Coche>;
 
+                    ModificarColorOMotor(Contexto1,coches);
 
                     menu = false;
+                   
                 break;
             case 2:
-                menu = false;
-                break;
+                   
+                    var aviones = Contexto1.Aviones;
+                    Vehiculo avion = aviones[0];
+
+                    ModificarColorOMotor(Contexto1,aviones);
+                    menu = false;
+                  
+                    break;
             case 3:
-                menu = false;
-                break; 
+                   
+                    var yates= Contexto1.Yates;
+                    ModificarColorOMotor(Contexto1,yates);
+                    menu = false;
+                   
+                    break; 
             case 4:
                 Console.WriteLine("Cancelando...");
                 menu = false;
@@ -259,9 +374,10 @@ internal class Program
         }
         }while(menu == true);
     }
-
+ 
     private static void Main(string[] args)
     {
+        VehiculosContexto Contexto1 = new VehiculosContexto();
         bool menu = true;
         do
         {
@@ -328,7 +444,7 @@ internal class Program
                         //Contexto1.SaveChanges();
                     }
 
-                    crearVehiculo();
+                    crearVehiculo(Contexto1);
 
                     break;
                 case 2:
@@ -338,7 +454,8 @@ internal class Program
                 case 3:
                     Console.WriteLine("Aqui se debe Editar el vehiculo selected:");
                     //NO TERMINADA LA FUNCION:
-                    EditarVechiculo();
+
+                    EditarVechiculo(Contexto1);
                     break;
                 case 4:
                     Console.WriteLine("Aqui se debe crear el vehiculo:");
